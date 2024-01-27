@@ -305,6 +305,51 @@ class SendMeme(graphene.relay.ClientIDMutation):
         return SendMeme(meme_play)
 
 
+class VoteMeme(graphene.relay.ClientIDMutation):
+    meme = graphene.Field(MemeType)
+
+    class Input:
+        meme_id = graphene.ID(required=True)
+        value = graphene.Int(required=True)
+
+    @access_required
+    def mutate_and_get_payload(self, info, **kwargs):
+        user = kwargs.get('user')
+        if not user:
+            raise Exception('[AUTH ERROR] Invalid anonymous request')
+
+        try:
+            target_meme = MemePlay.objects.get(id=kwargs['meme_id'])
+        except MemePlay.DoesNotExist:
+            raise Exception('[QUERY ERROR] Request object does not exist')
+
+        # validate votability
+        if target_meme.meme_match.datetime_close is not None:
+            raise Exception('[OPERATION ERROR] Match already closed')
+
+        if target_meme.user.id == user.id:
+            raise Exception('[OPERATION ERROR] Cannot vote on self posted meme')
+
+        if target_meme.vote_set.filter(user__id=user.id).count() > 0:
+            raise Exception('[OPERATION ERROR] Already voted in this meme')
+
+        # validate given value
+        if kwargs['value'] < 0 or kwargs['value'] > 10:
+            raise Exception('[VALUE ERROR] Vote value must be between 0 and 10')
+
+        vote = Vote.objects.create(
+            user=user,
+            meme_play=target_meme,
+            value=kwargs['value']
+        )
+        vote.save()
+
+        target_meme.score = sum([i.value for i in target_meme.votes.all()]) / target_meme.votes.count()
+        target_meme.save()
+
+        return VoteMeme(target_meme)
+
+
 class Mutation:
     # access operations
     sign_up = SignUp.Field()
@@ -318,3 +363,4 @@ class Mutation:
 
     # meme
     send_meme = SendMeme.Field()
+    vote_meme = VoteMeme.Field()
