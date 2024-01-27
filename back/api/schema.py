@@ -99,6 +99,14 @@ class Query(graphene.ObjectType):
     def resolve_matches(self, info, **kwargs):
         return MemeMatch.objects.filter(**kwargs)
 
+    memes = graphene.List(
+        MemeType,
+        meme_match_id=graphene.ID(required=True)
+    )
+
+    def resolve_memes(self, info, **kwargs):
+        return MemePlay.objects.filter(**kwargs)
+
 
 ############################
 #
