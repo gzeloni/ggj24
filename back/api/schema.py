@@ -17,6 +17,7 @@ class MatchType(graphene.ObjectType):
 
 
 class MemeType(graphene.ObjectType):
+    id = graphene.ID()
     meme_match = graphene.Field(MatchType)
     user = graphene.Field('api.schema.UserType')
     meme = graphene.String()
@@ -138,7 +139,27 @@ class SignIn(graphene.relay.ClientIDMutation):
         return SignIn(session.token)
 
 
+class CreateMatch(graphene.relay.ClientIDMutation):
+    meme_match = graphene.Field(MatchType)
+
+    class Input:
+        reference = graphene.String(required=True)
+        datetime_open = graphene.DateTime(required=True)        
+
+    def mutate_and_get_payload(self, info, **kwargs):
+        game_match = MemeMatch.objects.create(
+            reference=kwargs['reference'],
+            datetime_open=kwargs['datetime_open']
+        )
+        game_match.save()
+
+        return CreateMatch(game_match)
+
+
 class Mutation:
     # access operations
     sign_up = SignUp.Field()
     sign_in = SignIn.Field()
+
+    # creates
+    create_match = CreateMatch.Field()
