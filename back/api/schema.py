@@ -86,7 +86,15 @@ class Query(graphene.ObjectType):
     def resolve_user(self, info, **kwargs):
         return UserModel.objects.get(id=kwargs['id'])
 
-    matches = graphene.List(MatchType)
+    matches = graphene.List(
+        MatchType,
+        reference__icontains=graphene.String(),
+        is_open=graphene.Boolean(),
+        datetime_open=graphene.DateTime(),
+        datetime_close=graphene.DateTime(),
+        datetime_open__gte=graphene.DateTime(),
+        datetime_open__lte=graphene.DateTime()
+    )
 
     def resolve_matches(self, info, **kwargs):
         return MemeMatch.objects.filter(**kwargs)
