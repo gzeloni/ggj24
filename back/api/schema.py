@@ -19,6 +19,9 @@ class MatchType(graphene.ObjectType):
     participants = graphene.List('api.schema.UserType')
     participants_count = graphene.Int()
 
+    def resolve_memes(self, info, **kwargs):
+        return self.memeplay_set.all()
+
     def resolve_participants(self, info, **kwargs):
         return self.participants.all()
 
@@ -33,6 +36,9 @@ class MemeType(graphene.ObjectType):
     meme = graphene.String()
     score = graphene.Float()
     votes = graphene.List('api.schema.VoteType')
+
+    def resolve_meme(self, info, **kwargs):
+        return self.meme.decode('utf-8')
 
 
 class VoteType(graphene.ObjectType):
@@ -262,6 +268,41 @@ class EnterMatch(graphene.relay.ClientIDMutation):
         return EnterMatch(game_match)
 
 
+class SendMeme(graphene.relay.ClientIDMutation):
+    meme = graphene.Field(MemeType)
+
+    class Input:
+        match_id = graphene.ID(required=True)
+        data = graphene.String(required=True)
+
+    @access_required
+    def mutate_and_get_payload(self, info, **kwargs):
+        user = kwargs.get('user')
+        if not user:
+            raise Exception('[AUTH ERROR] Invalid anonymous request')
+        
+        try:
+            game_match = MemeMatch.objects.get(id=kwargs['match_id'])
+        except MemeMatch.DoesNotExist:
+            raise Exception('[Query Error] Requested object does not exist')
+
+        if game_match.datetime_close is not None:
+            raise Exception('[OPERATION ERROR] Match already closed')
+
+        if user not in game_match.participants.all():
+            raise Exception('[OPERATION ERROR] Must be registered to the match to send meme')
+
+        if game_match.memeplay_set.filter(user__id=user.id).count() > 0:
+            raise Exception('[OPERATION ERROR] Already sent meme for this match')
+
+        meme_play = MemePlay.objects.create(
+            meme_match=game_match,
+            user=user,
+            meme=kwargs['data'].encode('utf-8')
+        )
+        meme_play.save()
+
+        return SendMeme(meme_play)
 
 
 class Mutation:
@@ -274,3 +315,6 @@ class Mutation:
     start_match = CreateMatch.Field()
     close_match = CreateMatch.Field()
     enter_match = EnterMatch.Field()
+
+    # meme
+    send_meme = SendMeme.Field()
