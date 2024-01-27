@@ -4,7 +4,30 @@ from datetime import datetime
 import graphql_jwt
 import graphene
 from django.conf import settings
-from api.models import UserModel
+from api.models import UserModel, MemeMatch, MemePlay, Vote
+
+
+class MatchType(graphene.ObjectType):
+    id = graphene.ID()
+    reference = graphene.String()
+    datetime_open = graphene.DateTime()
+    datetime_close = graphene.DateTime()
+    is_open = graphene.Boolean()
+    memes = graphene.List('api.schema.MemeType')
+
+
+class MemeType(graphene.ObjectType):
+    meme_match = graphene.Field(MatchType)
+    user = graphene.Field('api.schema.UserType')
+    meme = graphene.String()
+    score = graphene.Float()
+    votes = graphene.List('api.schema.VoteType')
+
+
+class VoteType(graphene.ObjectType):
+    user = graphene.Field('api.schema.UserType')
+    meme_play = graphene.Field(MemeType)
+    value = graphene.Int()
 
 
 class UserType(graphene.ObjectType):
@@ -12,7 +35,10 @@ class UserType(graphene.ObjectType):
     username = graphene.String()
     avatar = graphene.String()
     date_joined = graphene.Date()
-    # memes = graphene.List('api.schema.MemeType')
+    memes = graphene.List('api.schema.MemeType')
+
+    def resolve_memes(self, info, **kwargs):
+        return self.memeplay_set.all()
 
     def resolve_avatar(self, info, **kwargs):
         if not self.avatar:
@@ -25,6 +51,16 @@ class Query(graphene.ObjectType):
 
     def resolve_version(self, info, **kwargs):
         return settings.VERSION
+
+    users = graphene.List(UserType)
+
+    def resolve_users(self, info, **kwargs):
+        return UserModel.objects.filter(**kwargs)
+
+    matches = graphene.List(MatchType)
+
+    def resolve_matches(self, info, **kwargs):
+        return MemeMatch.objects.filter(**kwargs)
 
 
 ############################
