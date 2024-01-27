@@ -53,6 +53,10 @@ class UserType(graphene.ObjectType):
     avatar = graphene.String()
     date_joined = graphene.Date()
     memes = graphene.List('api.schema.MemeType')
+    overall_score = graphene.Float()
+
+    def resolve_overall_score(self, info, **kwargs):
+        return sum([i.score for i in self.memeplay_set.all()]) / self.memeplay_set.count()
 
     def resolve_memes(self, info, **kwargs):
         return self.memeplay_set.all()
@@ -106,6 +110,8 @@ class Query(graphene.ObjectType):
 
     def resolve_memes(self, info, **kwargs):
         return MemePlay.objects.filter(**kwargs)
+
+    
 
 
 ############################
