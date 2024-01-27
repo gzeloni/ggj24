@@ -10,3 +10,8 @@ install:
 migrate:
 	python manage.py makemigrations
 	python manage.py migrate
+
+pipe:
+	make install
+	make migrate
+	make run
