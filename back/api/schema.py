@@ -69,10 +69,22 @@ class Query(graphene.ObjectType):
     def resolve_version(self, info, **kwargs):
         return settings.VERSION
 
-    users = graphene.List(UserType)
+    users = graphene.List(
+        UserType,
+        username__icontains=graphene.String(),
+        id__in=graphene.List(graphene.ID)
+    )
 
     def resolve_users(self, info, **kwargs):
         return UserModel.objects.filter(**kwargs)
+
+    user = graphene.Field(
+        UserType,
+        id=graphene.ID(required=True)
+    )
+
+    def resolve_user(self, info, **kwargs):
+        return UserModel.objects.get(id=kwargs['id'])
 
     matches = graphene.List(MatchType)
 
