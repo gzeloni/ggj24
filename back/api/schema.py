@@ -5,6 +5,7 @@ import graphql_jwt
 import graphene
 from django.conf import settings
 from api.models import UserModel, MemeMatch, MemePlay, Vote
+from api.user_auth import access_required
 
 
 class MatchType(graphene.ObjectType):
@@ -14,6 +15,15 @@ class MatchType(graphene.ObjectType):
     datetime_close = graphene.DateTime()
     is_open = graphene.Boolean()
     memes = graphene.List('api.schema.MemeType')
+    hoster = graphene.Field('api.schema.UserType')
+    participants = graphene.List('api.schema.UserType')
+    participants_count = graphene.Int()
+
+    def resolve_participants(self, info, **kwargs):
+        return self.participants.all()
+
+    def resolve_participants_count(self, info, **kwargs):
+        return self.participants.count()
 
 
 class MemeType(graphene.ObjectType):
@@ -146,14 +156,112 @@ class CreateMatch(graphene.relay.ClientIDMutation):
         reference = graphene.String(required=True)
         datetime_open = graphene.DateTime(required=True)        
 
+    @access_required
     def mutate_and_get_payload(self, info, **kwargs):
+        user = kwargs.get('user')
+        if not user:
+            raise Exception('[AUTH ERROR] Invalid anonymous request')
+
         game_match = MemeMatch.objects.create(
             reference=kwargs['reference'],
-            datetime_open=kwargs['datetime_open']
+            datetime_open=kwargs['datetime_open'],
+            hoster=user
         )
         game_match.save()
 
         return CreateMatch(game_match)
+
+
+class StartMatch(graphene.relay.ClientIDMutation):
+    meme_match = graphene.Field(MatchType)
+
+    class Input:
+        match_id = graphene.ID(required=True)
+
+    @access_required
+    def mutate_and_get_payload(self, info, **kwargs):
+        user = kwargs.get('user')
+        if not user:
+            raise Exception('[AUTH ERROR] Invalid anonymous request')
+
+        try:
+            game_match = MemeMatch.objects.get(id=kwargs['match_id'])
+        except MemeMatch.DoesNotExist:
+            raise Exception('[Query Error] Requested object does not exist')
+
+        # Validate ownability and capability of object manipulation
+        if user.id != game_match.hoster.id:
+            raise Exception('[AUTH ERROR] Unauthorized')
+
+        if game_match.datetime_close is not None:
+            raise Exception('[OPERATION ERROR] Cannot reopen a closed match')
+
+        game_match.is_open = True
+        game_match.save()
+
+        return StartMatch(game_match)
+
+
+class CloseMatch(graphene.relay.ClientIDMutation):
+    meme_match = graphene.Field(MatchType)
+
+    class Input:
+        match_id = graphene.ID(required=True)
+
+    @access_required
+    def mutate_and_get_payload(self, info, **kwargs):
+        user = kwargs.get('user')
+        if not user:
+            raise Exception('[AUTH ERROR] Invalid anonymous request')
+
+        try:
+            game_match = MemeMatch.objects.get(id=kwargs['match_id'])
+        except MemeMatch.DoesNotExist:
+            raise Exception('[Query Error] Requested object does not exist')
+
+        # Validate ownability and capability of object manipulation
+        if user.id != game_match.hoster.id:
+            raise Exception('[AUTH ERROR] Unauthorized')
+
+        if game_match.datetime_close is not None:
+            raise Exception('[OPERATION ERROR] Matrch already closed')
+
+        game_match.is_open = False
+        game_match.datetime_close = datetime.now()
+        game_match.save()
+
+        return CloseMatch(game_match)
+
+
+class EnterMatch(graphene.relay.ClientIDMutation):
+    meme_match = graphene.Field(MatchType)
+
+    class Input:
+        match_id = graphene.ID(required=True)
+
+    @access_required
+    def mutate_and_get_payload(self, info, **kwargs):
+        user = kwargs.get('user')
+        if not user:
+            raise Exception('[AUTH ERROR] Invalid anonymous request')
+
+        try:
+            game_match = MemeMatch.objects.get(id=kwargs['match_id'])
+        except MemeMatch.DoesNotExist:
+            raise Exception('[Query Error] Requested object does not exist')
+
+        if game_match.datetime_close is not None:
+            raise Exception('[OPERATION ERROR] Match already closed')
+
+        if user in game_match.participants.all():
+            raise Exception('[OPERATION ERROR] Already registered for this match')
+
+        game_match.participants.add(user)
+        game_match.save()
+
+        return EnterMatch(game_match)
+
+
 
 
 class Mutation:
@@ -161,5 +269,8 @@ class Mutation:
     sign_up = SignUp.Field()
     sign_in = SignIn.Field()
 
-    # creates
+    # matches
     create_match = CreateMatch.Field()
+    start_match = CreateMatch.Field()
+    close_match = CreateMatch.Field()
+    enter_match = EnterMatch.Field()

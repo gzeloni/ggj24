@@ -4,11 +4,12 @@ from django.contrib.auth.models import User
 
 
 class MemeMatch(models.Model):
-    hoster = models.ForeignKey('api.UserModel', null=False, on_delete=models.CASCADE)
+    hoster = models.ForeignKey('api.UserModel', null=False, on_delete=models.CASCADE, related_name='hoster_user')
     reference = models.CharField(max_length=255, null=False, blank=False)
     datetime_open = models.DateTimeField(null=False)
     datetime_close = models.DateTimeField(null=True)
     is_open = models.BooleanField(default=False)
+    participants = models.ManyToManyField('api.UserModel')
 
 
 class UserModel(User):
