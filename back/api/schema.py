@@ -84,11 +84,11 @@ class Query(graphene.ObjectType):
 
     user = graphene.Field(
         UserType,
-        id=graphene.ID(required=True)
+        username=graphene.String(required=True)
     )
 
     def resolve_user(self, info, **kwargs):
-        return UserModel.objects.get(id=kwargs['id'])
+        return UserModel.objects.get(username=kwargs['username'])
 
     matches = graphene.List(
         MatchType,
