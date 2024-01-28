@@ -10,7 +10,7 @@ automat==20.2.0
 backports-datetime-fromisoformat==1.0.0
 channels==3.0.4
 constantly==15.1.0
-cryptography==3.2
+cryptography==41.0.6
 daphne==3.0.2
 django==3.2.6
 graphene==2.1.9
