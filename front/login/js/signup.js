@@ -10,7 +10,7 @@ async function createAccount(event) {
         signupMessage.innerText = 'As senhas não coincidem.';
         return;
     }
-    const graphqlEndpoint = 'http://104.237.1.145:5024/graphql/';
+    const graphqlEndpoint = 'https://ggj24.gzeloni.dev/graphql/';
 
     const mutation = `
     mutation {

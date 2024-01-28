@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
     const reference = decodeURIComponent(urlParams.get('reference'));
 
-    const response = await fetch('http://104.237.1.145:5024/graphql/', {
+    const response = await fetch('https://ggj24.gzeloni.dev/graphql/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

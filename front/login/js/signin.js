@@ -2,7 +2,7 @@ async function login() {
     const useremail = document.getElementById('useremail').value;
     const password = document.getElementById('password').value;
 
-    const graphqlEndpoint = 'http://104.237.1.145:5024/graphql/';
+    const graphqlEndpoint = 'https://ggj24.gzeloni.dev/graphql/';
 
     const mutation = `
         mutation {

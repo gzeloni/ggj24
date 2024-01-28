@@ -237,7 +237,7 @@ async function sendNewJoke(blob, matchId) {
     let authToken = localStorage.getItem('authToken');
 
     try {
-        await fetch('http://104.237.1.145:5024/graphql/', {
+        await fetch('https://ggj24.gzeloni.dev/graphql/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ async function sendNewJoke(blob, matchId) {
         });
 
         // Envia a nova piada
-        const response = await fetch('http://104.237.1.145:5024/graphql/', {
+        const response = await fetch('https://ggj24.gzeloni.dev/graphql/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

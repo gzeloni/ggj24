@@ -1,6 +1,6 @@
 async function fetchProfileData() {
     let authToken = localStorage.getItem('authToken');
-    const validateToken = await fetch('http://104.237.1.145:5024/graphql/', {
+    const validateToken = await fetch('https://ggj24.gzeloni.dev/graphql/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -18,7 +18,7 @@ async function fetchProfileData() {
     });
     let user = await validateToken.json();
     user = user.data.validateUserToken.payload.username;
-    const response = await fetch('http://104.237.1.145:5024/graphql/', {
+    const response = await fetch('https://ggj24.gzeloni.dev/graphql/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

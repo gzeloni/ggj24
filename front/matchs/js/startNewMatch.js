@@ -2,7 +2,7 @@ async function startNewMatch() {
     const matchName = document.getElementById('matchName').value;
     let authToken = localStorage.getItem('authToken');
     var isoDateString = new Date().toISOString();
-    const data = await fetch('http://104.237.1.145:5024/graphql/', {
+    const data = await fetch('https://ggj24.gzeloni.dev/graphql/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
