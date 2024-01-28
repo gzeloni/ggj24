@@ -7,7 +7,7 @@ services:
     image: memerank:devel
     restart: on-failure
     container_name: memerank_container
-    command: gunicorn -w 3 ggj24.wsgi:application -b :5024
+    command: python manage.py runserver 0.0.0.0:5024
     env_file: ggj24/environment/env
     volumes:
       - .:/app
