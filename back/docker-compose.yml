@@ -7,7 +7,7 @@ services:
     image: memerank:devel
     restart: on-failure
     container_name: memerank_container
-    command: python manage.py runserver 0.0.0.0:5024
+    command: python3 manage.py runserver 0.0.0.0:5024
     env_file: ggj24/environment/env
     volumes:
       - .:/app
