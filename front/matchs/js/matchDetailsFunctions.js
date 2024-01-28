@@ -1,34 +1,71 @@
-const jokesData = [
-    { id: 1, content: "Por que o pássaro não usa Facebook? Porque ele já tem Twitter.", votos: 0, totalVotos: 0, openMatch: true },
-    { id: 2, content: "Qual é o lugar mais legal do planeta? A sombra!", votos: 0, totalVotos: 0, openMatch: false },
-    { id: 3, content: "O que é um ponto branco no alto do prédio? Um ponto de interrogação.", votos: 0, totalVotos: 0, openMatch: true }
-];
+document.addEventListener('DOMContentLoaded', async function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const reference = decodeURIComponent(urlParams.get('reference'));
 
-document.addEventListener('DOMContentLoaded', () => {
-    const jokesContainer = document.getElementById('jokesContainer');
-
-    jokesData.reverse();  // Reverte a ordem para mostrar as mais recentes no topo
-
-    jokesData.forEach(joke => {
-        const card = createJokeCard(joke);
-        jokesContainer.appendChild(card);
+    const response = await fetch('http://104.237.1.145:5024/graphql/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+            query {
+                matches (reference_Icontains: "${reference}") {
+                  id
+                  memes {
+                    id
+                    meme
+                    user {
+                      id
+                      username
+                    }
+                    score
+                  }
+                }
+              }
+            `,
+        }),
     });
 
-    // Cria os modais dinamicamente
+    const data = await response.json();
+    const matchDetails = data.data.matches[0];
+
+    document.getElementById('idCell').textContent = matchDetails.id;
+    document.getElementById('referenceCell').textContent = reference;
+    document.getElementById('participantsCountCell').textContent = matchDetails.memes.length;
+
+    const memesContainer = document.getElementById('memesContainer');
+
+    memesContainer.innerHTML = '';
+
+    let currentRow;
+    matchDetails.memes.forEach((meme, index) => {
+        if (index % 4 === 0) {
+            currentRow = document.createElement('div');
+            currentRow.className = 'row';
+            memesContainer.appendChild(currentRow);
+        }
+
+        const card = createMemeCard(meme);
+        currentRow.appendChild(card);
+    });
+
     createModals();
 });
 
-function createJokeCard(joke) {
+function createMemeCard(meme) {
     const card = document.createElement('div');
-    card.className = 'col';
+    card.className = 'col-md-3'; 
+
+    const imageDataUrl = `${meme.meme}`;
 
     card.innerHTML = `
-        <div class="card" data-id="${joke.id}">
+        <div class="card" data-id="${meme.id}">
+            <img src="${imageDataUrl}" class="card-img-top" alt="Meme Image" style="width: 100%; height: auto;">
             <div class="card-body">
-                <h5 class="card-title">Piada #${joke.id}</h5>
-                <p class="card-text">${joke.content}</p>
-                ${joke.openMatch ? `<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#participateModal">Participar</button>` : ''}
-                <button class="btn btn-success" onclick="openVoteModal(${joke.id})" id="voteBtn-${joke.id}">Votar (${joke.votes})</button>
+                <h5 class="card-title">Meme #${meme.id}</h5>
+                <p class="card-text">Score: ${meme.score}</p>
+                <p class="card-text">User: ${meme.user.username}</p>
             </div>
         </div>
     `;

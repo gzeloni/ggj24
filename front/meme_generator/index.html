@@ -1,72 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- <!DOCTYPE html>
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>SEM NOME AINDA</title>
-    <script defer src="./fonts/fontawesome-all.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Gerador de Memes</title>
 </head>
 
-<body onload="init()">
-    <header>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <h1>SEM NOME AINDA</h1>
+            <a class="navbar-brand" href="../matchs/home.html">PARTIDAS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../profile/profile.html">PERFIL</a>
+                    </li>
+                    
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="logout();">SAIR</a>
+                    </li>
+                </ul>
+            </div>
         </div>
+    </nav>
+    <div class="container mt-5">
+        <div class="row">
 
-    </header>
-    <main>
-        <div>
-            <section class="gallery grid-container">
-                <!-- js render -->
-            </section>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body" id="canvasWrapper">
+                    </div>
+                </div>
+            </div>
 
-            <section class="meme-container hidden">
-                <button onclick="toggleView()">
-                    <i class="fas fa-times"></i> Voltar para a galeria
-                </button>
-
-                <div class="meme-control">
-                    <canvas class="memeCanvas">
-                        Seu navegador não suporta o HTML na versão 5.
-                    </canvas>
-
-                    <div class="txts-list">
-                        <!-- js render -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3><i class="fa fa-picture-o fa-fw" aria-hidden="true"></i> Imagem de Origem</h3>
+                        <div class="form-group">
+                            <label for="imgURL">A partir de URL</label>
+                            <input id="imgURL" class="form-control" type="text" placeholder="Link para a imagem" />
+                            <small><a href="http://memeful.com/" target="_blank">Memeful.com</a></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="imgFile">Do Disco Local</label>
+                            <input id="imgFile" type="file" class="form-control-file" accept="image/*" />
+                        </div>
                     </div>
                 </div>
 
-                <button onclick="newTxtBtnClicked()">
-                    <i class="fas fa-plus"></i>  Adicionar linha
-                </button>
-                <a id="dl" download="meme.png" href="#" onclick="dlCanvas(this)">
-                    <span>
-                        <i class="fas fa-cloud-download-alt"></i> Baixar
-                    </span>
-                </a>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3><i class="fa fa-commenting-o fa-fw" aria-hidden="true"></i> Texto do Meme</h3>
+                        <div class="form-group">
+                            <label for="textTop">Texto Superior</label>
+                            <input id="textTop" type="text" class="form-control" placeholder="Texto superior" />
+                        </div>
+                        <div class="form-group">
+                            <label for="textBottom">Texto Inferior</label>
+                            <input id="textBottom" type="text" class="form-control" placeholder="Texto inferior" />
+                        </div>
+                    </div>
+                </div>
 
-            </section>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3><i class="fa fa-text-height fa-fw" aria-hidden="true"></i> Tamanho do Texto</h3>
+                        <div class="form-group">
+                            <label for="textSizeTop">Texto Superior: <span id="textSizeTopOut">10</span></label>
+                            <input id="textSizeTop" type="range" min="2" max="50" step="2" class="form-control-range" />
+                        </div>
+                        <div class="form-group">
+                            <label for="textSizeBottom">Texto Inferior: <span id="textSizeBottomOut">10</span></label>
+                            <input id="textSizeBottom" type="range" min="2" max="50" step="2"
+                                class="form-control-range" />
+                        </div>
+                    </div>
+                </div>
 
-            <section class="contact">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <h3><i class="fa fa-eye fa-fw" aria-hidden="true"></i> Tamanho da Prévia</h3>
+                            <div class="custom-control custom-checkbox">
+                                <input id="trueSize" type="checkbox" class="custom-control-input" />
+                                <label class="custom-control-label" for="trueSize">Mostrar tamanho real</label>
+                            </div>
+                        </div>
 
-            </section>
+                        <div class="form-group mt-4">
+                            <h3><i class="fa fa-download fa-fw" aria-hidden="true"></i> Exportar</h3>
+                            <p>Se o botão não funcionar, clique com o botão direito na imagem e salve-a</p>
+                            <p>Se estiver no celular, baixe a imagem de origem e faça o upload diretamente</p>
+                            <button id="export" class="btn btn-primary">Exportar!</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </main>
+    </div>
 
-    <footer>
-        <div class="container">
-
-        </div>
-    </footer>
-    <script src="js/images.js"></script>
-    <script src="js/meme.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/nav.js"></script>
 </body>
 
-</html>
+</html> -->

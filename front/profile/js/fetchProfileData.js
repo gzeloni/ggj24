@@ -1,35 +1,52 @@
 async function fetchProfileData() {
-    const response = await fetch('URL_DO_SEU_SERVIDOR_GRAPHQL', {
+    let authToken = localStorage.getItem('authToken');
+    const validateToken = await fetch('http://104.237.1.145:5024/graphql/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer SEU_TOKEN_DE_AUTORIZACAO',
+            'Authorization': `JWT ${authToken}`,
         },
         body: JSON.stringify({
             query: `
-                query {
-                    userProfile {
-                        nome
-                        username
-                        partidas
-                        melhorJogada
-                        posicaoRanking
-                        desempenhoPartidas {
-                            numeroPartida
-                            progresso
-                        }
-                        desempenhoJogadas {
-                            numeroJogada
-                            progresso
-                        }
-                    }
+            mutation {
+                validateUserToken (token: "${authToken}") {
+                  payload
                 }
+              }
             `,
         }),
     });
-
+    let user = await validateToken.json();
+    user = user.data.validateUserToken.payload.username;
+    const response = await fetch('http://104.237.1.145:5024/graphql/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `JWT ${authToken}`,
+        },
+        body: JSON.stringify({
+            query: `
+            query {
+                user (username: "${user}"){
+                  id
+                  username
+                  avatar
+                  dateJoined
+                  memes {
+                    id
+                    meme
+                    score
+                    votes {
+                      value
+                    }
+                  }
+                }
+              }
+            `,
+        }),
+    });
     const data = await response.json();
-    return data.data.userProfile;
+    return data.data.user;
 }
 
 async function fillProfile() {
@@ -38,7 +55,7 @@ async function fillProfile() {
     // Preencher informações do perfil
     const profileInfo = document.getElementById('profile-info');
     profileInfo.innerHTML = `
-        <h4>${profileData.nome}</h4>
+        <h4>${profileData.username}</h4>
         <p class="text-secondary mb-1">@${profileData.username}</p>
         <button class="btn btn-primary">SEGUIR</button>
     `;
@@ -51,7 +68,7 @@ async function fillProfile() {
                 <h6 class="mb-0">Partidas</h6>
             </div>
             <div class="col-sm-9 text-secondary">
-                ${profileData.partidas}
+                ${profileData.memes}
             </div>
         </div>
         <hr>
@@ -60,7 +77,7 @@ async function fillProfile() {
                 <h6 class="mb-0">Melhor jogada</h6>
             </div>
             <div class="col-sm-9 text-secondary">
-                <a href="${profileData.melhorJogada}">Detalhes</a>
+                <a href="${profileData.memes}">Detalhes</a>
             </div>
         </div>
         <hr>

@@ -1,25 +1,70 @@
-function sendNewJoke() {
-    const newJokeTitle = document.getElementById('newJokeTitle').value;
-    const newJokeContent = document.getElementById('newJokeContent').value;
+async function sendNewJoke(blob, matchId) {
+    const newJokeMatchIdElement = document.getElementById('newJokeMatchId');
+    const matchId = newJokeMatchIdElement.value;
+    let authToken = localStorage.getItem('authToken');
 
-    const newCard = document.createElement('div');
-    newCard.className = 'card mt-3';
-    newCard.innerHTML = `
-<div class="card-body">
-    <h5 class="card-title">${newJokeTitle}</h5>
-    <p class="card-text">${newJokeContent}</p>
-</div>
-`;
+    document.getElementById('newJokeContent').value = "";
 
-    const timeline = document.getElementById('timeline');
-    timeline.appendChild(newCard);
+    try {
+        await fetch('http://104.237.1.145:5024/graphql/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `JWT ${authToken}`,
+            },
+            body: JSON.stringify({
+                query: `
+                  mutation {
+                      enterMatch(input: {
+                          matchId: "${matchId}"
+                      }) {
+                          clientMutationId
+                      }
+                  }
+              `
+            }),
+        });
 
-    newJokeTitle = ""
-    newJokeContent = ""
-    const modal = new bootstrap.Modal();
-    modal.close();
+        // Envia a nova piada
+        const response = await fetch('http://104.237.1.145:5024/graphql/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `JWT ${authToken}`,
+            },
+            body: JSON.stringify({
+                query: `
+                  mutation {
+                      sendMeme(input: {
+                          matchId: "${matchId}",
+                          data: "${blob}"
+                      }) {
+                          meme {
+                              id
+                              user {
+                                  id
+                                  username
+                              }
+                              meme
+                              score
+                          }
+                      }
+                  }
+              `
+            }),
+        });
+
+        // Verifica se a requisição foi bem-sucedida antes de fechar o modal
+        if (response.ok) {
+            const modal = new bootstrap.Modal(document.getElementById('sendJokeModal'));
+            modal.hide();
+        } else {
+            console.error('Erro ao enviar a nova piada.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+    }
 }
 const urlParams = new URLSearchParams(window.location.search);
 const matchName = urlParams.get('partida');
-
 document.getElementById('matchName').textContent = matchName;

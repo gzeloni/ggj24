@@ -1,9 +1,3 @@
-const jokesData = [
-    { id: 1, content: "Por que o pássaro não usa Facebook? Porque ele já tem Twitter.", votos: 0, totalVotos: 0, openMatch: true },
-    { id: 2, content: "Qual é o lugar mais legal do planeta? A sombra!", votos: 0, totalVotos: 0, openMatch: false },
-    { id: 3, content: "O que é um ponto branco no alto do prédio? Um ponto de interrogação.", votos: 0, totalVotos: 0, openMatch: true }
-];
-
 document.addEventListener('DOMContentLoaded', () => {
     const jokesContainer = document.getElementById('jokesContainer');
 
