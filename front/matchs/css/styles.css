@@ -1,0 +1,23 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  background-color: #343a40;
+}
+
+.navbar-brand, .navbar-text {
+  color: #fff;
+}
+
+.table-container {
+  margin-top: 20px;
+}
+
+.btn-margin {
+  margin-right: 5px;
+}
+
+.btn-margin-last {
+  margin-right: 0 !important;
+}
